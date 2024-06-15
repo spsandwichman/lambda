@@ -1,0 +1,7 @@
+lambdas extend as far right as possible:
+    \x.\y.\z.z x y => \x.(\y.(\z.(z x y)))
+
+application associates to the left:
+    z x y => ((z x) y)
+
+\x.\y.\z.z x y => \x.(\y.(\z.((z x) y)))
