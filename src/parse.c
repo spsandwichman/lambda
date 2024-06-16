@@ -37,9 +37,8 @@ Ast* parse_lambda(TokenStream* ts) {
     advance(ts);
 
     lam->body = parse_expr(ts);
-    lam->body->parent = (Ast*)lam;
-
     if (lam->body == NULL) return NULL;
+    lam->body->parent = (Ast*)lam;
 
     return (Ast*)lam;
 }
@@ -78,17 +77,21 @@ Ast* parse_expr(TokenStream* ts) {
         left = new_ast(AST_APPLY);
         ((AstApply*)left)->func = old_left;
         ((AstApply*)left)->input = right;
-        right->parent = old_left->parent = left;
+        ((AstApply*)left)->func->parent = left;
+        ((AstApply*)left)->input->parent = left;
     }
 
     return left;
 }
 
-Ast* parse(TokenStream* ts) {
-    return parse_expr(ts);
+Expr* to_expr(Ast* expr);
+
+Expr* parse(TokenStream* ts) {
+    Ast* expr = parse_expr(ts);
+    return to_expr(expr);
 }
 
-#define indent(n) printf("%*s", (n)*2, "")
+#define indent(n) printf("%*s", (n)*4, "")
 
 static void i_print_tree(Ast* expr, u32 i) {
     indent(i);
@@ -106,7 +109,7 @@ static void i_print_tree(Ast* expr, u32 i) {
         i_print_tree(((AstApply*)expr)->input, i + 1);
         break;
     case AST_VAR:
-        printf("'"str_fmt"', %u\n", str_arg(*((AstVar*)expr)->ident), ((AstVar*)expr)->dbi);
+        printf(str_fmt"\n", str_arg(*((AstVar*)expr)->ident));
         break;
     default:
         break;

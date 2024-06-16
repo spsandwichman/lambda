@@ -15,7 +15,10 @@ void lex(TokenStream* ts, string text) {
     for (u64 cursor = 0; cursor < text.len; cursor++) {
         while (cursor < text.len && is_whitespace(text.raw[cursor])) cursor++;
 
+        if (cursor >= text.len) break;
+
         switch (text.raw[cursor]) {
+            
         case '\\': da_append(ts, ((Token){ &text.raw[cursor], 1, TOK_LAMBDA })); continue;
         case '.':  da_append(ts, ((Token){ &text.raw[cursor], 1, TOK_PERIOD })); continue;
         case '(':  da_append(ts, ((Token){ &text.raw[cursor], 1, TOK_OPEN_PAREN })); continue;
@@ -29,7 +32,7 @@ void lex(TokenStream* ts, string text) {
         default:
             u64 len = 0;
             while (cursor + len < text.len) {
-                if ((is_special(text.raw[cursor+len])) || is_whitespace(text.raw[cursor+len])) break;
+                if (is_whitespace(text.raw[cursor+len]) || (is_special(text.raw[cursor+len]))) break;
                 len++;
             }
             da_append(ts, ((Token){ &text.raw[cursor], len, TOK_IDENT }));

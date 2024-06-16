@@ -19,8 +19,8 @@ typedef struct Token {
 
 typedef struct TokenStream {
     Token* at;
-    u32 len;
-    u32 cap;
+    u64 len;
+    u64 cap;
 
     u32 cursor;
 } TokenStream;
@@ -63,21 +63,50 @@ typedef struct AstApply {
 typedef struct AstVar {
     _AST_BASE_
 
+    bool bound;
+
     u32 dbi; // de bruijn index
 
     Token* ident;
-    AstLambda* bind; // NULL if is a free variable
 } AstVar;
+
+#undef _AST_BASE_
+
+enum {
+    EXPR_LAM, // lambda term
+    EXPR_APP, // application
+    EXPR_VAR, // variable
+};
+
+typedef struct Expr Expr;
+
+// De Bruijn term
+typedef struct Expr {
+    // Expr* parent;
+    u8 kind;
+    union {
+        Expr* lam; // body of lambda
+        struct {
+            Expr* func;
+            Expr* input;
+        } app;
+        struct {
+            u64 index;
+            bool bound;
+        } var;
+    };
+} Expr;
 
 Ast* new_ast(u8 kind);
 
-Ast* parse(TokenStream* ts);
 Ast* parse_expr(TokenStream* ts);
 Ast* parse_term(TokenStream* ts);
 Ast* parse_lambda(TokenStream* ts);
 
-void print_tree(Ast* expr);
+Expr* parse(TokenStream* ts);
 
-void de_bruijn(Ast* expr);
+void print_debruijn(Expr* expr);
+void print_standard(Expr* expr);
 
-Ast* eval(Ast* expr);
+bool beta(Expr** expr);
+bool is_beta_reducible(Expr* expr);

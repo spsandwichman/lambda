@@ -3,19 +3,44 @@
 
 #include "lambda.h"
 
-string text = constr("(\\y.(\\x.x)) z");
+#define SUCC  "(λn.λf.λx.f (n f x)) "
+#define PLUS  "(λm.λn.λf.λx.m f (n f x)) "
+
+#define ONE   "(λx.λy.x y) "
+#define TWO   "(λx.λy.x (x y)) "
+#define THREE "(λx.λy.x (x (x y))) "
+
+#define G(...) "(" __VA_ARGS__ ")" 
+
+string text = str(
+    PLUS ONE G( PLUS ONE ONE )
+);
 
 int main() {
-    printf("::: "str_fmt" => \n", str_arg(text));
+    printf("\n  "str_fmt"\n", str_arg(text));
 
     TokenStream ts = {0};
 
     lex(&ts, text);
 
-    Ast* expr = parse(&ts);
+    Expr* expr = parse(&ts);
 
-    de_bruijn(expr);
-    print_tree(expr);
+    if (expr == NULL) {
+        printf("failed to parse lambda expression");
+        return 1;
+    }
 
-    eval(expr);
+    printf("=> \n");
+    printf("  "); print_debruijn(expr); printf("\n");
+    //print_standard(expr); printf("\n\n");
+
+    while (beta(&expr)) {
+        printf("  "); print_debruijn(expr); printf("\n");
+    }
+
+    printf("=> \n  ");
+    print_standard(expr);
+    printf("\n");
+
+
 }

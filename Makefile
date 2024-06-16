@@ -20,7 +20,7 @@ LD = gcc
 INCLUDEPATHS = -Isrc/
 DEBUGFLAGS = -lm -pg -g
 ASANFLAGS = -fsanitize=undefined -fsanitize=address
-CFLAGS = -MD -Wincompatible-pointer-types -Wno-discarded-qualifiers -lm -Wno-deprecated-declarations
+CFLAGS = -MD -Wall -Wincompatible-pointer-types -Wno-discarded-qualifiers -lm -Wno-deprecated-declarations -Wreturn-type
 OPT = -O2
 
 FILE_NUM = 0
