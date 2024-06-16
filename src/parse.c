@@ -103,10 +103,6 @@ void destroy_ast(Ast* expr) {
 
 da_typedef(string);
 
-static Expr* new_expr() {
-    return calloc(1, sizeof(Expr));
-}
-
 #define tokenptr2str(t) ((string){.len = (t)->len, .raw = (t)->raw})
 
 static da(string) free_vars = {0};
@@ -168,4 +164,14 @@ Expr* parse(TokenStream* ts) {
     Expr* expr = to_expr(ast);
     destroy_ast(ast);
     return expr;
+}
+
+Expr* new_expr() {
+    expr_count++;
+    return calloc(1, sizeof(Expr));
+}
+
+void free_expr(Expr* expr) {
+    expr_count--;
+    free(expr);
 }

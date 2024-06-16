@@ -1,21 +1,22 @@
 #include "lambda.h"
 
-
 void destroy_expr(Expr* expr) {
     switch(expr->kind) {
     case EXPR_LAM:
         destroy_expr(expr->lam);
+        free_expr(expr);
         break;
     case EXPR_APP:
         destroy_expr(expr->app.func);
         destroy_expr(expr->app.input);
+        free_expr(expr);
         break;
     case EXPR_VAR:
+        free_expr(expr);
         break;
     default:
         UNREACHABLE;
     }
-    free(expr);
 }
 
 bool is_beta_reducible(Expr* expr) {
@@ -65,7 +66,7 @@ void decrement_free_vars(Expr* expr, u64 depth) {
 
 Expr* clone_input_and_inc_free_vars(Expr* input, u64 depth, u64 inc) {
 
-    Expr* e = calloc(1, sizeof(Expr));
+    Expr* e = new_expr();
     e->kind = input->kind;
 
     switch(e->kind) {
@@ -99,6 +100,7 @@ Expr* clone_input_to_bound_vars(Expr* body, Expr* input, u64 depth) {
         return body;
     case EXPR_VAR:
         if (body->var.bound) {
+            free_expr(body);
             return clone_input_and_inc_free_vars(input, 1, depth);
         }
         return body;
@@ -119,17 +121,15 @@ Expr* beta_reduce(Expr* expr) {
     Expr* M = expr->app.func->lam;
     Expr* N = expr->app.input;
 
-    if (mark_bound(M, 1) == 0) {
-        decrement_free_vars(M, 1);
-        return M;
-    }
+    int bound = mark_bound(M, 1);
 
     decrement_free_vars(M, 1);
 
-    M = clone_input_to_bound_vars(M, N, 0);
+    if (bound != 0) M = clone_input_to_bound_vars(M, N, 0);
 
-    free(expr);
     destroy_expr(N);
+    free_expr(expr->app.func);
+    free_expr(expr);
 
     return M;
 }

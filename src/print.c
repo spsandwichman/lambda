@@ -43,7 +43,7 @@ static const char* varnames[] = {
 void i_print_standard(Expr* expr, u64 lam_depth) {
     switch(expr->kind) {
     case EXPR_LAM:
-        printf("λ%s.", varnames[lam_depth % 27]);
+        printf("λ%s.", varnames[lam_depth % 26]);
         i_print_standard(expr->lam, lam_depth + 1);
         break;
     case EXPR_APP:
@@ -64,11 +64,16 @@ void i_print_standard(Expr* expr, u64 lam_depth) {
         }
         break;
     case EXPR_VAR:
-        printf("%s", varnames[(lam_depth - expr->var.index) % 27]);
+        if (lam_depth == 0 || (i64)(lam_depth - expr->var.index) < 0) {
+            printf("%s", varnames[(expr->var.index - 1) % 26]);
+        } else {
+            printf("%s", varnames[(lam_depth - expr->var.index) % 26]);
+        }
         break;
     }
 }
 
+// SUPER buggy
 void print_standard(Expr* expr) {
     i_print_standard(expr, 0);
 }
