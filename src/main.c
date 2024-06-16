@@ -5,15 +5,17 @@
 
 #define SUCC  "(λn.λf.λx.f (n f x)) "
 #define PLUS  "(λm.λn.λf.λx.m f (n f x)) "
+#define MULT  "(λm.λn.λf.m (n f))"
 
-#define ONE   "(λx.λy.x y) "
-#define TWO   "(λx.λy.x (x y)) "
-#define THREE "(λx.λy.x (x (x y))) "
+#define ZERO  "(λf.λx.x)"
+#define ONE   "(λf.λx.f x) "
+#define TWO   "(λf.λx.f (f x)) "
+#define THREE "(λf.λx.f (f (f x))) "
 
 #define G(...) "(" __VA_ARGS__ ")" 
 
 string text = str(
-    PLUS ONE G( PLUS ONE G( PLUS ONE ONE ) )
+    MULT TWO TWO
 );
 
 int main() {
@@ -30,11 +32,11 @@ int main() {
         return 1;
     }
 
-    printf("=> "); print_debruijn(expr); printf("\n");
+    printf(" = "); print_debruijn(expr); printf("\n");
     //print_standard(expr); printf("\n\n");
 
     while (beta(&expr)) {
-        printf("   "); print_debruijn(expr); printf("\n");
+        printf(" = "); print_debruijn(expr); printf("\n");
     }
 
     printf(":: ");
