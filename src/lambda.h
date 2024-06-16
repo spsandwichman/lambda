@@ -28,49 +28,6 @@ typedef struct TokenStream {
 void lex(TokenStream* ts, string text);
 
 extern char* token_kind_strings[];
-enum {
-    AST_LAMBDA,
-    AST_APPLY,
-    AST_VAR,
-};
-
-#define _AST_BASE_ \
-    struct Ast* parent; \
-    u8 kind;
-
-typedef struct Ast {
-    _AST_BASE_
-
-} Ast;
-
-// lambda definition
-typedef struct AstLambda {
-    _AST_BASE_
-
-    Token* arg;
-    Ast* body;
-} AstLambda;
-
-// function application
-typedef struct AstApply {
-    _AST_BASE_
-
-    Ast* func;
-    Ast* input;
-} AstApply;
-
-// variable name
-typedef struct AstVar {
-    _AST_BASE_
-
-    bool bound;
-
-    u32 dbi; // de bruijn index
-
-    Token* ident;
-} AstVar;
-
-#undef _AST_BASE_
 
 enum {
     EXPR_LAM, // lambda term
@@ -96,12 +53,6 @@ typedef struct Expr {
         } var;
     };
 } Expr;
-
-Ast* new_ast(u8 kind);
-
-Ast* parse_expr(TokenStream* ts);
-Ast* parse_term(TokenStream* ts);
-Ast* parse_lambda(TokenStream* ts);
 
 Expr* parse(TokenStream* ts);
 

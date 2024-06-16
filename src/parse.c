@@ -1,4 +1,4 @@
-#include "lambda.h"
+#include "parse.h"
 
 static forceinline Token* current(TokenStream* ts) {
     return &ts->at[ts->cursor];
@@ -84,38 +84,88 @@ Ast* parse_expr(TokenStream* ts) {
     return left;
 }
 
-Expr* to_expr(Ast* expr);
-
-Expr* parse(TokenStream* ts) {
-    Ast* expr = parse_expr(ts);
-    return to_expr(expr);
-}
-
-#define indent(n) printf("%*s", (n)*4, "")
-
-static void i_print_tree(Ast* expr, u32 i) {
-    indent(i);
-
-    switch (expr->kind) {
+void destroy_ast(Ast* expr) {
+    switch(expr->kind) {
     case AST_LAMBDA:
-        printf("λ."str_fmt" =\n", str_arg(*((AstLambda*)expr)->arg));
-        i_print_tree(((AstLambda*)expr)->body, i + 1);
+        AstLambda* l = (AstLambda*)expr;
+        destroy_ast(l->body);
         break;
     case AST_APPLY:
-        printf("apply\n");
-        i_print_tree(((AstApply*)expr)->func, i + 1);
-        indent(i);
-        printf("to\n");
-        i_print_tree(((AstApply*)expr)->input, i + 1);
+        AstApply* a = (AstApply*)expr;
+        destroy_ast(a->func);
+        destroy_ast(a->input);
         break;
     case AST_VAR:
-        printf(str_fmt"\n", str_arg(*((AstVar*)expr)->ident));
-        break;
-    default:
         break;
     }
+    free(expr);
 }
 
-void print_tree(Ast* expr) {
-    i_print_tree(expr, 0);
+da_typedef(string);
+
+static Expr* new_expr() {
+    return calloc(1, sizeof(Expr));
+}
+
+#define tokenptr2str(t) ((string){.len = (t)->len, .raw = (t)->raw})
+
+static da(string) free_vars = {0};
+
+static Expr* ast_to_db(Ast* expr, da(string)* func_param_stack) {
+    Expr* db = new_expr();
+    db->kind = expr->kind;
+
+    switch(expr->kind) {
+    case AST_LAMBDA:
+        AstLambda* l = (AstLambda*)expr;
+        da_append(func_param_stack, tokenptr2str(l->arg)); // push arg onto stack
+        db->lam = ast_to_db(l->body, func_param_stack);
+        da_pop(func_param_stack); // pop arg off of stack
+        break;
+    case AST_APPLY:
+        AstApply* a = (AstApply*)expr;
+        db->app.func  = ast_to_db(a->func,  func_param_stack);
+        db->app.input = ast_to_db(a->input, func_param_stack);
+        break;
+    case AST_VAR:
+        AstVar* v = (AstVar*)expr;
+        string match = tokenptr2str(v->ident);
+        for (db->var.index = 1; db->var.index <= func_param_stack->len; db->var.index++) {
+            string arg = func_param_stack->at[func_param_stack->len - db->var.index];
+            if (string_eq(arg, match)) {
+                return db;
+            }
+        }
+        for (u64 i = 0; i < free_vars.len; i++) {
+            string free = free_vars.at[i];
+            if (string_eq(free, match)) {
+                db->var.index += i;
+                return db;
+            }
+        }
+        da_append(&free_vars, match);
+        db->var.index += free_vars.len - 1;
+        break;
+    }
+    return db;
+}
+
+Expr* to_expr(Ast* expr) {
+    da(string) func_param_stack = {0};
+    free_vars = (da(string)){0};
+
+    da_init(&func_param_stack, 16);
+    da_init(&free_vars, 16);
+
+    Expr* db = ast_to_db(expr, &func_param_stack);
+    assert(func_param_stack.len == 0);
+
+    return db;
+}
+
+Expr* parse(TokenStream* ts) {
+    Ast* ast = parse_expr(ts);
+    Expr* expr = to_expr(ast);
+    destroy_ast(ast);
+    return expr;
 }

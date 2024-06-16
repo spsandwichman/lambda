@@ -7,7 +7,7 @@ void print_debruijn(Expr* expr) {
         print_debruijn(expr->lam);
         break;
     case EXPR_APP:
-        if (expr->app.func->kind == AST_LAMBDA) {
+        if (expr->app.func->kind == EXPR_LAM) {
             printf("(");
             print_debruijn(expr->app.func);
             printf(")");
@@ -15,7 +15,7 @@ void print_debruijn(Expr* expr) {
             print_debruijn(expr->app.func);
         }
         printf(" ");
-        if (expr->app.input->kind == AST_APPLY) {
+        if (expr->app.input->kind == EXPR_APP) {
             printf("(");
             print_debruijn(expr->app.input);
             printf(")");
@@ -47,7 +47,7 @@ void i_print_standard(Expr* expr, u64 lam_depth) {
         i_print_standard(expr->lam, lam_depth + 1);
         break;
     case EXPR_APP:
-        if (expr->app.func->kind == AST_LAMBDA) {
+        if (expr->app.func->kind == EXPR_LAM) {
             printf("(");
             i_print_standard(expr->app.func, lam_depth);
             printf(")");
@@ -55,7 +55,7 @@ void i_print_standard(Expr* expr, u64 lam_depth) {
             i_print_standard(expr->app.func, lam_depth);
         }
         printf(" ");
-        if (expr->app.input->kind == AST_APPLY) {
+        if (expr->app.input->kind == EXPR_APP) {
             printf("(");
             i_print_standard(expr->app.input, lam_depth);
             printf(")");

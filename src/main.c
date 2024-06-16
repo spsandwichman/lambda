@@ -13,11 +13,11 @@
 #define G(...) "(" __VA_ARGS__ ")" 
 
 string text = str(
-    PLUS ONE G( PLUS ONE ONE )
+    PLUS ONE G( PLUS ONE G( PLUS ONE ONE ) )
 );
 
 int main() {
-    printf("\n  "str_fmt"\n", str_arg(text));
+    printf("\n:: "str_fmt"\n", str_arg(text));
 
     TokenStream ts = {0};
 
@@ -30,15 +30,14 @@ int main() {
         return 1;
     }
 
-    printf("=> \n");
-    printf("  "); print_debruijn(expr); printf("\n");
+    printf("=> "); print_debruijn(expr); printf("\n");
     //print_standard(expr); printf("\n\n");
 
     while (beta(&expr)) {
-        printf("  "); print_debruijn(expr); printf("\n");
+        printf("   "); print_debruijn(expr); printf("\n");
     }
 
-    printf("=> \n  ");
+    printf(":: ");
     print_standard(expr);
     printf("\n");
 

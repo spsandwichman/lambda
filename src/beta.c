@@ -1,6 +1,22 @@
 #include "lambda.h"
 
-#define beta_reducible(expr) 
+
+void destroy_expr(Expr* expr) {
+    switch(expr->kind) {
+    case EXPR_LAM:
+        destroy_expr(expr->lam);
+        break;
+    case EXPR_APP:
+        destroy_expr(expr->app.func);
+        destroy_expr(expr->app.input);
+        break;
+    case EXPR_VAR:
+        break;
+    default:
+        UNREACHABLE;
+    }
+    free(expr);
+}
 
 bool is_beta_reducible(Expr* expr) {
     switch(expr->kind) {
@@ -111,6 +127,9 @@ Expr* beta_reduce(Expr* expr) {
     decrement_free_vars(M, 1);
 
     M = clone_input_to_bound_vars(M, N, 0);
+
+    free(expr);
+    destroy_expr(N);
 
     return M;
 }
