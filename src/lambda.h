@@ -60,10 +60,8 @@ void print_debruijn(Expr* expr);
 void print_standard(Expr* expr);
 
 bool beta(Expr** expr);
-bool is_beta_reducible(Expr* expr);
-
-Expr* new_expr();
-
-void free_expr(Expr* expr);
+bool eta(Expr** expr);
 
 extern u64 expr_count;
+
+#include "alloc.h"

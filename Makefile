@@ -21,7 +21,7 @@ INCLUDEPATHS = -Isrc/
 DEBUGFLAGS = -lm -pg -g
 ASANFLAGS = -fsanitize=undefined -fsanitize=address
 CFLAGS = -MD -Wall -Wincompatible-pointer-types -Wno-discarded-qualifiers -lm -Wno-deprecated-declarations -Wreturn-type
-OPT = -O2
+OPT = -Ofast -flto
 
 FILE_NUM = 0
 

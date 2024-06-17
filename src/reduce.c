@@ -4,15 +4,15 @@ void destroy_expr(Expr* expr) {
     switch(expr->kind) {
     case EXPR_LAM:
         destroy_expr(expr->lam);
-        free_expr(expr);
+        alloca_delete(expr);
         break;
     case EXPR_APP:
         destroy_expr(expr->app.func);
         destroy_expr(expr->app.input);
-        free_expr(expr);
+        alloca_delete(expr);
         break;
     case EXPR_VAR:
-        free_expr(expr);
+        alloca_delete(expr);
         break;
     default:
         UNREACHABLE;
@@ -66,7 +66,7 @@ void decrement_free_vars(Expr* expr, u64 depth) {
 
 Expr* clone_input_and_inc_free_vars(Expr* input, u64 depth, u64 inc) {
 
-    Expr* e = new_expr();
+    Expr* e = alloca_new();
     e->kind = input->kind;
 
     switch(e->kind) {
@@ -100,7 +100,7 @@ Expr* clone_input_to_bound_vars(Expr* body, Expr* input, u64 depth) {
         return body;
     case EXPR_VAR:
         if (body->var.bound) {
-            free_expr(body);
+            alloca_delete(body);
             return clone_input_and_inc_free_vars(input, 1, depth);
         }
         return body;
@@ -128,8 +128,8 @@ Expr* beta_reduce(Expr* expr) {
     if (bound != 0) M = clone_input_to_bound_vars(M, N, 0);
 
     destroy_expr(N);
-    free_expr(expr->app.func);
-    free_expr(expr);
+    alloca_delete(expr->app.func);
+    alloca_delete(expr);
 
     return M;
 }
@@ -153,4 +153,15 @@ bool beta(Expr** expr) {
         return false;
     }
     UNREACHABLE;
+}
+
+bool eta(Expr** expr) {
+    if ((*expr)->kind != EXPR_LAM) return false;
+    if (mark_bound((*expr)->lam, 1) == 0) {
+        Expr* body = (*expr)->lam;
+        alloca_delete((*expr));
+        (*expr) = body;
+        return true;
+    }
+    return false;
 }

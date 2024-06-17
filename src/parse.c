@@ -108,7 +108,7 @@ da_typedef(string);
 static da(string) free_vars = {0};
 
 static Expr* ast_to_db(Ast* expr, da(string)* func_param_stack) {
-    Expr* db = new_expr();
+    Expr* db = alloca_new();
     db->kind = expr->kind;
 
     switch(expr->kind) {
@@ -164,14 +164,4 @@ Expr* parse(TokenStream* ts) {
     Expr* expr = to_expr(ast);
     destroy_ast(ast);
     return expr;
-}
-
-Expr* new_expr() {
-    expr_count++;
-    return calloc(1, sizeof(Expr));
-}
-
-void free_expr(Expr* expr) {
-    expr_count--;
-    free(expr);
 }
