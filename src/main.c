@@ -4,14 +4,30 @@
 #include "lambda.h"
 #include "lib.h"
 
-char* text = G(DIV N100 N10);
+char* text = DIV N10 N5;
 
 u64 expr_count = 0;
 
-int main() {
+int main(int argc, char** argv) {
+
+    bool print_stats = false;
+
+    // get string from command line args
+    if (argc > 1) {
+
+        for (int i = 1; i < argc; i++) {
+            char* c = argv[i];
+            if (strcmp(c, "-stats") == 0) {
+                print_stats = true;
+            }
+            else {
+                text = argv[i];
+            }
+        }
+    }
+
 
     alloca_init();
-
 
     printf(" :: %s\n", text);
 
@@ -29,12 +45,18 @@ int main() {
     printf(" :: "); print_debruijn(expr); printf("\n");
 
     u64 i = 0;
+    u64 last_expr_count = expr_count;
     for (; beta(&expr); i++) {
-        // printf(" β  "); print_debruijn(expr); printf("\n");
-        // printf(" -> %llu, %llu nodes\n", i, expr_count);        
+        if (print_stats) {
+            printf(" -> %llu, %llu nodes (%+lld)\n", i, expr_count, (i64)expr_count - (i64)last_expr_count);
+            last_expr_count = expr_count;      
+        } else {
+            printf(" β  "); print_debruijn(expr); printf("\n");
+        }
     }
 
     printf(" :: "); print_debruijn(expr); printf("\n");
+    printf(" :: "); print_standard(expr); printf("\n");
     printf(" -- %llu β-reductions, %llu nodes\n", i, expr_count);
 
     alloca_deinit();
