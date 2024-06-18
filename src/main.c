@@ -4,11 +4,17 @@
 #include "lambda.h"
 #include "lib.h"
 
-char* text = DIV N10 N5;
+char* text = DIV N100 N10;
 
 u64 expr_count = 0;
 
-bool print_stats = false;
+enum {
+    PRINT_DB,
+    PRINT_STATS,
+    PRINT_NONE,
+};
+
+u8   print = PRINT_DB;
 bool beta_recurse = false;
 
 
@@ -20,8 +26,11 @@ int main(int argc, char** argv) {
 
         for (int i = 1; i < argc; i++) {
             char* c = argv[i];
-            if (strcmp(c, "-stats") == 0) {
-                print_stats = true;
+            if (strcmp(c, "-print-stats") == 0) {
+                print = PRINT_STATS;
+            } else
+            if (strcmp(c, "-print-none") == 0) {
+                print = PRINT_NONE;
             } else
             if (strcmp(c, "-recurse") == 0) {
                 beta_recurse = true;
@@ -60,11 +69,16 @@ int main(int argc, char** argv) {
     u64 b = 0;
     for (; (b = beta(&expr, beta_recurse)); iterations++) {
         b_redux += b;
-        if (print_stats) {
-            printf(" -> iter %llu, %llu β reductions so far, %llu nodes active (%+lld)\n", iterations, b_redux, expr_count, (i64)expr_count - (i64)last_expr_count);
-            last_expr_count = expr_count;      
-        } else {
+
+        switch (print) {
+        case PRINT_DB:
             printf(" β  "); print_debruijn(expr); printf("\n");
+            break;
+        case PRINT_STATS:
+            printf(" -> iter %llu, %llu β reductions so far, %llu nodes active (%+lld)\n", iterations + 1, b_redux, expr_count, (i64)expr_count - (i64)last_expr_count);
+            last_expr_count = expr_count;
+            break;
+        default:
         }
     }
 

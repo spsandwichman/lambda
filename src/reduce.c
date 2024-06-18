@@ -92,6 +92,32 @@ Expr* clone_input_to_bound_vars(Expr* body, Expr* input, u64 depth) {
     }
 }
 
+// attempt to do everything
+Expr* do_all_traversals_lmao(Expr* body, Expr* input, u64 depth) {
+    switch(body->kind) {
+    case EXPR_LAM:
+        body->lam = do_all_traversals_lmao(body->lam, input, depth + 1);
+        return body;
+    case EXPR_APP:
+        body->app.func  = do_all_traversals_lmao(body->app.func,  input, depth);
+        body->app.input = do_all_traversals_lmao(body->app.input, input, depth);
+        return body;
+    case EXPR_VAR:
+        bool bound = (body->var.index == depth);
+        // decrement free variables
+        if (bound) {
+            alloca_delete(body);
+            return clone_input_and_inc_free_vars(input, 1, depth - 1);
+        }
+        if (body->var.index > depth) {
+            body->var.index--;
+        }
+        return body;
+    default:
+        UNREACHABLE;
+    }
+}
+
 Expr* beta_reduce(Expr* expr) {
     // only beta reduce if its an application and our function is a lambda
     // e.g. (λx.x) y
@@ -103,11 +129,7 @@ Expr* beta_reduce(Expr* expr) {
     Expr* M = expr->app.func->lam;
     Expr* N = expr->app.input;
 
-    int bound = mark_bound(M, 1);
-
-    decrement_free_vars(M, 1);
-
-    if (bound != 0) M = clone_input_to_bound_vars(M, N, 0);
+    M = do_all_traversals_lmao(M, N, 1);
 
     destroy_expr(N);
     alloca_delete(expr->app.func);
