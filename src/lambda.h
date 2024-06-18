@@ -80,6 +80,4 @@ void print_standard(Expr* expr);
 u64 beta(Expr** expr, bool recurse);
 bool eta(Expr** expr);
 
-extern u64 expr_count;
-
 #include "alloc.h"

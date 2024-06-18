@@ -49,25 +49,25 @@ void pool_free_all(ExprPool* p) {
     }
 }
 
-static ExprAllocator allocator = {0};
+ExprAllocator alloc = {0};
 
 void alloca_init() {
-    da_init(&allocator, 4);
-    pool_init(&allocator.at[0]);
+    da_init(&alloc, 4);
+    pool_init(&alloc.at[0]);
 }
 
 void alloca_deinit() {
-    for (size_t i = 0; i < allocator.len; i++) {
-        free(allocator.at[i].pool);
+    for (size_t i = 0; i < alloc.len; i++) {
+        free(alloc.at[i].pool);
     }
-    da_destroy(&allocator);
-    allocator = (ExprAllocator){0};
+    da_destroy(&alloc);
+    alloc = (ExprAllocator){0};
 }
 
 Expr* alloca_new() {
-    expr_count++;
-    for (size_t i = 0; i < allocator.len; i++) {
-        Expr* n = pool_alloc(&allocator.at[i]);
+    alloc.current_nodes++;
+    for (size_t i = 0; i < alloc.len; i++) {
+        Expr* n = pool_alloc(&alloc.at[i]);
         if (n != NULL) return n;
     }
     // we ran out of space and need to make a new pool
@@ -76,14 +76,15 @@ Expr* alloca_new() {
     Expr* n = pool_alloc(&np);
     if (n == NULL) CRASH("failed to allocate on new pool");
 
-    da_append(&allocator, np);
+    da_append(&alloc, np);
+    alloc.max_nodes = max(alloc.current_nodes, alloc.max_nodes);
     return n;
 }
 
 void alloca_delete(Expr* e) {
-    expr_count--;
-    for (size_t i = 0; i < allocator.len; i++) {
-        if (pool_free(&allocator.at[i], e)) {
+    alloc.current_nodes--;
+    for (size_t i = 0; i < alloc.len; i++) {
+        if (pool_free(&alloc.at[i], e)) {
             return;
         }
     }

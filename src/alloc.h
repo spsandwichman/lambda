@@ -25,6 +25,9 @@ typedef struct ExprAllocator {
     ExprPool* at;
     size_t len;
     size_t cap;
+
+    u64 max_nodes;
+    u64 current_nodes;
 } ExprAllocator;
 
 void alloca_init();
@@ -32,3 +35,5 @@ void alloca_deinit();
 
 Expr* alloca_new();
 void alloca_delete(Expr* e);
+
+extern ExprAllocator alloc;

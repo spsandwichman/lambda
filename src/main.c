@@ -6,7 +6,6 @@
 
 char* text = DIV N100 N10;
 
-u64 expr_count = 0;
 
 enum {
     PRINT_DB,
@@ -16,7 +15,6 @@ enum {
 
 u8   print = PRINT_DB;
 bool beta_recurse = false;
-
 
 int main(int argc, char** argv) {
 
@@ -65,7 +63,7 @@ int main(int argc, char** argv) {
 
     u64 iterations = 0;
     u64 b_redux = 0;
-    u64 last_expr_count = expr_count;
+    u64 last_expr_count = alloc.current_nodes;
     u64 b = 0;
     for (; (b = beta(&expr, beta_recurse)); iterations++) {
         b_redux += b;
@@ -75,8 +73,8 @@ int main(int argc, char** argv) {
             printf(" β  "); print_debruijn(expr); printf("\n");
             break;
         case PRINT_STATS:
-            printf(" -> iter %llu, %llu β reductions so far, %llu nodes active (%+lld)\n", iterations + 1, b_redux, expr_count, (i64)expr_count - (i64)last_expr_count);
-            last_expr_count = expr_count;
+            printf(" -> iter %llu, %llu β reductions so far, %llu nodes active (%+lld)\n", iterations + 1, b_redux, alloc.current_nodes, (i64)alloc.current_nodes - (i64)last_expr_count);
+            last_expr_count = alloc.current_nodes;
             break;
         default:
         }
@@ -84,7 +82,7 @@ int main(int argc, char** argv) {
 
     printf(" :: "); print_debruijn(expr); printf("\n");
     printf(" :: "); print_standard(expr); printf("\n");
-    printf(" -- %llu iterations, %llu β-reductions, %llu nodes\n", iterations, b_redux, expr_count);
+    printf(" -- %llu iterations, %llu β-reductions, %llu final nodes (%llu max)\n", iterations, b_redux, alloc.current_nodes, alloc.max_nodes);
 
     alloca_deinit();
 }
