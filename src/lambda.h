@@ -54,12 +54,30 @@ typedef struct Expr {
     };
 } Expr;
 
+static_assert(sizeof(void*) == sizeof(u64));
+
+// typedef u64 Term;
+
+// #define MAX_TERM_COUNT 0x7FFFFFFF
+
+// #define get_kind(term)       ((term) & 0b11)
+// #define set_kind(term, kind) (((term) & ~(0b11ll)) | (kind & (0b11ll)))
+
+// #define get_lam(term)      (((term) & 0x7FFFFFFFll)
+// #define set_lam(term, lam) (((term) & ~(0x1FFFFFFFCll)) | (((lam) & (0x7FFFFFFFll)) << 2))
+
+// #define get_app_fn(term) (((term) & 0x7FFFFFFFll)
+// #define get_app_in(term) ((((term) >> 33) & 0x7FFFFFFFll)
+
+// #define set_app_fn(term, fn) (((term) & ~(0x1FFFFFFFCll)) | (((fn) & (0x7FFFFFFFll)) << 2))
+// #define set_app_in(term, in) (((term) & (0xFFFFFFFE00000000ll)) | (((fn) & (0x7FFFFFFFll)) << 33))
+
 Expr* parse(TokenStream* ts);
 
 void print_debruijn(Expr* expr);
 void print_standard(Expr* expr);
 
-bool beta(Expr** expr);
+u64 beta(Expr** expr, bool recurse);
 bool eta(Expr** expr);
 
 extern u64 expr_count;

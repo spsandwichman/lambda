@@ -19,24 +19,6 @@ void destroy_expr(Expr* expr) {
     }
 }
 
-bool is_beta_reducible(Expr* expr) {
-    switch(expr->kind) {
-    case EXPR_LAM:
-        return is_beta_reducible(expr->lam);
-        break;
-    case EXPR_APP:
-        if (expr->app.func->kind == EXPR_LAM) {
-            return true;
-        }
-        return is_beta_reducible(expr->app.func) || is_beta_reducible(expr->app.input);
-        break;
-    case EXPR_VAR:
-        return false;
-        break;
-    }
-    UNREACHABLE;
-}
-
 int mark_bound(Expr* expr, u64 depth) {
     switch(expr->kind) {
     case EXPR_LAM: return mark_bound(expr->lam, depth+1);
@@ -135,20 +117,32 @@ Expr* beta_reduce(Expr* expr) {
 }
 
 // find an opportunity to beta-reduce and take it
-bool beta(Expr** expr) {
+u64 beta(Expr** expr, bool recurse) {
 
     Expr* e = *expr;
 
     switch(e->kind) {
     case EXPR_LAM:
-        return beta(&e->lam);
+        return beta(&e->lam, recurse);
     case EXPR_APP:
-        if (e->app.func->kind == EXPR_LAM) {
-            *expr = beta_reduce(*expr);
-            return true;
-        }
-        return beta(&e->app.func) || beta(&e->app.input);
-        
+        if (!recurse) {
+
+            if (e->app.func->kind == EXPR_LAM) {
+                *expr = beta_reduce(*expr);
+                return 1;
+            }
+            u64 fun = beta(&e->app.func, recurse);
+            if (fun) return fun;
+            return beta(&e->app.input, recurse);
+        } else {
+            u64 fun = beta(&e->app.func, recurse);
+            u64 inp = beta(&e->app.input, recurse);
+            if (e->app.func->kind == EXPR_LAM) {
+                *expr = beta_reduce(*expr);
+                return 1 + fun + inp;
+            }
+            return fun + inp;
+        }       
     case EXPR_VAR:
         return false;
     }
