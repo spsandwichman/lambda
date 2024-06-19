@@ -4,7 +4,8 @@
 #include "lambda.h"
 #include "lib.h"
 
-char* text = DIV N100 N10;
+char* text = G(POW G(POW N100 N100) N100);
+// char* text = DIV N1 N100;
 
 
 enum {

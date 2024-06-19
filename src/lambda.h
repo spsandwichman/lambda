@@ -39,7 +39,6 @@ typedef struct Expr Expr;
 
 // De Bruijn term
 typedef struct Expr {
-    // Expr* parent;
     u8 kind;
     union {
         Expr* lam; // body of lambda
@@ -49,7 +48,6 @@ typedef struct Expr {
         } app;
         struct {
             u64 index;
-            bool bound;
         } var;
     };
 } Expr;
@@ -78,6 +76,5 @@ void print_debruijn(Expr* expr);
 void print_standard(Expr* expr);
 
 u64 beta(Expr** expr, bool recurse);
-bool eta(Expr** expr);
 
 #include "alloc.h"
