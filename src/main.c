@@ -5,8 +5,7 @@
 #include "lib.h"
 
 // char* text = G(POW G(POW N100 N100) N100);
-char* text = DIV N100 N100;
-
+char* text = DIV N1000 N1000;
 
 enum {
     PRINT_DB,

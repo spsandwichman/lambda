@@ -45,6 +45,8 @@ Expr* clone_input_and_inc_free_vars(Expr* input, u64 depth, u64 inc) {
     return e;
 };
 
+// TODO if theres only one bound variable, you can avoid copying the whole thing
+
 // attempt to do everything
 Expr* do_all_traversals_lmao(Expr* body, Expr* input, u64 depth) {
     switch(body->kind) {
