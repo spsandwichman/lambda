@@ -54,17 +54,25 @@ typedef struct Expr {
 
 static_assert(sizeof(void*) == sizeof(u64));
 
-// typedef u64 Term;
+typedef struct Term {
+    u64 kind : 2;
+    u64 lam : 31;
+    u64 in  : 31;
+} Term;
 
-// #define MAX_TERM_COUNT 0x7FFFFFFF
+typedef u64 TermIndex;
+
+static_assert(sizeof(Term) == sizeof(u64));
+
+#define MAX_TERM_COUNT 0x7FFFFFFF
 
 // #define get_kind(term)       ((term) & 0b11)
 // #define set_kind(term, kind) (((term) & ~(0b11ll)) | (kind & (0b11ll)))
 
-// #define get_lam(term)      (((term) & 0x7FFFFFFFll)
+// #define get_lam(term)      (((term) & 0x7FFFFFFFll) >> 2)
 // #define set_lam(term, lam) (((term) & ~(0x1FFFFFFFCll)) | (((lam) & (0x7FFFFFFFll)) << 2))
 
-// #define get_app_fn(term) (((term) & 0x7FFFFFFFll)
+// #define get_app_fn(term) (((term) & 0x7FFFFFFFll) >> 2)
 // #define get_app_in(term) ((((term) >> 33) & 0x7FFFFFFFll)
 
 // #define set_app_fn(term, fn) (((term) & ~(0x1FFFFFFFCll)) | (((fn) & (0x7FFFFFFFll)) << 2))
