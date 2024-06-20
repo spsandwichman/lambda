@@ -85,6 +85,3 @@ int main(int argc, char** argv) {
 
     alloca_deinit();
 }
-
-// TODO complete beta reductions in batches
-// figure out how to do this without wasting work from beta reductions
