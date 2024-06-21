@@ -2,7 +2,7 @@
 
 #include "lambda.h"
 
-#define ALLOC_POOL_LENGTH 1<<20
+#define ALLOC_POOL_LENGTH (1ull<<20ull)
 
 typedef struct PoolFreeBlock PoolFreeBlock;
 typedef struct ExprPool ExprPool;
@@ -25,6 +25,7 @@ typedef struct ExprAllocator {
     ExprPool* at;
     size_t len;
     size_t cap;
+    size_t last_used;
 
     u64 max_nodes;
     u64 current_nodes;

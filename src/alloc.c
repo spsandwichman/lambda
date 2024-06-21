@@ -68,8 +68,12 @@ Expr* alloca_new() {
     nodes.current_nodes++;
     nodes.max_nodes = max(nodes.current_nodes, nodes.max_nodes);
     for (size_t i = 0; i < nodes.len; i++) {
-        Expr* n = pool_alloc(&nodes.at[i]);
-        if (n != NULL) return n;
+        u64 index = (i + nodes.last_used) % nodes.len;
+        Expr* n = pool_alloc(&nodes.at[index]);
+        if (n != NULL) {
+            nodes.last_used = index;
+            return n;
+        }
     }
     // we ran out of space and need to make a new pool
     ExprPool np = {0};
@@ -78,6 +82,7 @@ Expr* alloca_new() {
     if (n == NULL) CRASH("failed to allocate on new pool");
 
     da_append(&nodes, np);
+    nodes.last_used = nodes.len - 1;
     return n;
 }
 
@@ -85,6 +90,7 @@ void alloca_delete(Expr* e) {
     nodes.current_nodes--;
     for (size_t i = 0; i < nodes.len; i++) {
         if (pool_free(&nodes.at[i], e)) {
+            nodes.last_used = i;
             return;
         }
     }

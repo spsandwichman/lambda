@@ -4,8 +4,8 @@
 #include "lambda.h"
 #include "lib.h"
 
-char* text = G(POW G(POW N100 N100) N100);
-// char* text = DIV G(ADD G(MUL N2 N10) N2) N7;
+// char* text = G(POW G(POW N1000 N1000) N1000);
+char* text = DIV G(ADD G(MUL N2 N100) N2) N7;
 
 enum {
     PRINT_DB,
@@ -85,7 +85,8 @@ int main(int argc, char** argv) {
         case PRINT_STATS:
             i64 diff = (i64)nodes.current_nodes - (i64)last_expr_count;
             if (min_diff == 0 || !(-min_diff < diff && diff < min_diff)) {
-                printf(" -> iter %llu, %llu β reductions so far, %llu nodes active (%+lld)\n", iterations + 1, b_redux, nodes.current_nodes, diff);
+                printf(" -> iter %llu, %llu β reductions so far, %llu (%+lld) nodes active (%llu/%llu KB) \n", 
+                    iterations + 1, b_redux, nodes.current_nodes, diff, nodes.current_nodes * sizeof(Expr) / 1000, nodes.len * ALLOC_POOL_LENGTH * sizeof(Expr) / 1000);
             }
             if (separator != NULL) printf("%s", separator);
             last_expr_count = nodes.current_nodes;
