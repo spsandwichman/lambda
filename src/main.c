@@ -4,8 +4,8 @@
 #include "lambda.h"
 #include "lib.h"
 
-// char* text = G(POW G(POW N100 N100) N100);
-char* text = DIV N1000 N1000;
+char* text = G(POW G(POW N100 N100) N100);
+// char* text = DIV G(ADD G(MUL N2 N10) N2) N7;
 
 enum {
     PRINT_DB,
@@ -13,8 +13,10 @@ enum {
     PRINT_NONE,
 };
 
+i64  min_diff = 0;
 u8   print = PRINT_DB;
 bool beta_recurse = false;
+char* separator = NULL;
 
 int main(int argc, char** argv) {
 
@@ -31,6 +33,14 @@ int main(int argc, char** argv) {
             } else
             if (strcmp(c, "-recurse") == 0) {
                 beta_recurse = true;
+            } else
+            if (strcmp(c, "-min-diff") == 0) {
+                i++;
+                min_diff = atoll(argv[i]);
+            } else
+            if (strcmp(c, "-sep") == 0) {
+                i++;
+                separator = argv[i];
             } else
             if (c[0] == '-') {
                 printf("unrecognized option %s", c);
@@ -70,9 +80,14 @@ int main(int argc, char** argv) {
         switch (print) {
         case PRINT_DB:
             printf(" β  "); print_debruijn(expr); printf("\n");
+            if (separator != NULL) printf("%s", separator);
             break;
         case PRINT_STATS:
-            printf(" -> iter %llu, %llu β reductions so far, %llu nodes active (%+lld)\n", iterations + 1, b_redux, nodes.current_nodes, (i64)nodes.current_nodes - (i64)last_expr_count);
+            i64 diff = (i64)nodes.current_nodes - (i64)last_expr_count;
+            if (min_diff == 0 || !(-min_diff < diff && diff < min_diff)) {
+                printf(" -> iter %llu, %llu β reductions so far, %llu nodes active (%+lld)\n", iterations + 1, b_redux, nodes.current_nodes, diff);
+            }
+            if (separator != NULL) printf("%s", separator);
             last_expr_count = nodes.current_nodes;
             break;
         default:

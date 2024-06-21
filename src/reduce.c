@@ -19,6 +19,30 @@ void destroy_expr(Expr* expr) {
     }
 }
 
+// TODO if theres only one bound variable, you can avoid copying the whole thing
+
+static u64 num_bound = 0;
+static u64 inc_offset = 0;
+
+void inc_free_vars(Expr* input, u64 depth, u64 inc) {
+    switch(input->kind) {
+    case EXPR_LAM:
+        inc_free_vars(input->lam, depth+1, inc);
+        break;
+    case EXPR_APP:
+        inc_free_vars(input->app.func,  depth, inc);
+        inc_free_vars(input->app.input, depth, inc);
+        break;
+    case EXPR_VAR:
+        input->var.index = input->var.index;
+        if (input->var.index >= depth) {
+            input->var.index += inc;
+        }
+        break;
+    default:
+        UNREACHABLE;
+    }
+}
 
 Expr* clone_input_and_inc_free_vars(Expr* input, u64 depth, u64 inc) {
 
@@ -45,8 +69,6 @@ Expr* clone_input_and_inc_free_vars(Expr* input, u64 depth, u64 inc) {
     return e;
 };
 
-// TODO if theres only one bound variable, you can avoid copying the whole thing
-
 // attempt to do everything
 Expr* do_all_traversals_lmao(Expr* body, Expr* input, u64 depth) {
     switch(body->kind) {
@@ -59,10 +81,15 @@ Expr* do_all_traversals_lmao(Expr* body, Expr* input, u64 depth) {
         return body;
     case EXPR_VAR:
         bool bound = (body->var.index == depth);
-        // decrement free variables
         if (bound) {
+            num_bound++;
             alloca_delete(body);
-            return clone_input_and_inc_free_vars(input, 1, depth - 1);
+            if (num_bound == 1) {
+                inc_free_vars(input, 1, depth - 1);
+                inc_offset = depth - 1;
+                return input;
+            }
+            return clone_input_and_inc_free_vars(input, 1, (depth - 1) - inc_offset);
         }
         if (body->var.index > depth) {
             body->var.index--;
@@ -80,13 +107,16 @@ Expr* beta_reduce(Expr* expr) {
     // not (λx.x)
     if ((expr)->kind != EXPR_APP || (expr)->app.func->kind != EXPR_LAM) return expr;
 
+    num_bound = 0;
+    inc_offset = 0;
+
     // (λ M) N
     Expr* M = expr->app.func->lam;
     Expr* N = expr->app.input;
 
     M = do_all_traversals_lmao(M, N, 1);
 
-    destroy_expr(N);
+    if (num_bound == 0) destroy_expr(N);
     alloca_delete(expr->app.func);
     alloca_delete(expr);
 

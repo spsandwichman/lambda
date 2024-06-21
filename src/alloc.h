@@ -2,7 +2,7 @@
 
 #include "lambda.h"
 
-#define ALLOC_POOL_LENGTH 1<<18
+#define ALLOC_POOL_LENGTH 1<<20
 
 typedef struct PoolFreeBlock PoolFreeBlock;
 typedef struct ExprPool ExprPool;
